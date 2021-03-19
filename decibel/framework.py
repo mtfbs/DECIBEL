@@ -47,14 +47,16 @@ def prepare_song(song: Song):
 
 
 # Pre-process songs for (training) jump alignment
-pool = mp.Pool(NR_CPU)
-for song_key in all_songs:
-    pool.apply_async(prepare_song, args=(all_songs[song_key],), callback=print)
-pool.close()
-pool.join()
-print('Pre-processing finished')
+# pool = mp.Pool(NR_CPU)
 # for song_key in all_songs:
-#     prepare_song(all_songs[song_key])
+#     pool.apply_async(prepare_song, args=(all_songs[song_key],), callback=print)
+# pool.close()
+# pool.join()
+
+for song_key in all_songs:
+    print(prepare_song(all_songs[song_key]))
+
+print('Pre-processing finished')
 
 # Train HMM parameters for jump alignment
 kf = KFold(n_splits=10, shuffle=True, random_state=42)
@@ -103,13 +105,16 @@ def estimate_chords_of_song(song: Song, chord_vocab: ChordVocabulary, hmm_parame
 #     estimate_chords_of_song(all_songs[song_key], chord_vocabulary, hmm_parameter_dict[song_key])
 
 # Estimate chords for all songs
-pool2 = mp.Pool(NR_CPU)
+# pool2 = mp.Pool(NR_CPU)
+# for song_key in all_songs:
+#     pool2.apply_async(estimate_chords_of_song,
+#                       args=(all_songs[song_key], chord_vocabulary, hmm_parameter_dict[song_key]),
+#                       callback=print)
+# pool2.close()
+# pool2.join()
+
 for song_key in all_songs:
-    pool2.apply_async(estimate_chords_of_song,
-                      args=(all_songs[song_key], chord_vocabulary, hmm_parameter_dict[song_key]),
-                      callback=print)
-pool2.close()
-pool2.join()
+    print(estimate_chords_of_song(all_songs[song_key], chord_vocabulary, hmm_parameter_dict[song_key]))
 
 print('Test phase (calculating labs of all methods) finished')
 
@@ -117,7 +122,7 @@ print('Test phase (calculating labs of all methods) finished')
 # Evaluation #
 ##############
 
-evaluator.evaluate_midis(all_songs)
+# evaluator.evaluate_midis(all_songs)
 evaluator.evaluate_tabs(all_songs)
 
 
@@ -126,15 +131,15 @@ def additional_actual_best_df_round(song: Song, chord_vocab: ChordVocabulary):
     return '{} is data fused with actual best MIDI and tab.'.format(str(song))
 
 
-pool3 = mp.Pool(NR_CPU)
-for song_key in all_songs:
-    pool3.apply_async(additional_actual_best_df_round,
-                      args=(all_songs[song_key], chord_vocabulary),
-                      callback=print)
-pool3.close()
-pool3.join()
+# pool3 = mp.Pool(NR_CPU)
 # for song_key in all_songs:
-#     additional_actual_best_df_round(all_songs[song_key], chord_vocabulary)
+#     pool3.apply_async(additional_actual_best_df_round,
+#                       args=(all_songs[song_key], chord_vocabulary),
+#                       callback=print)
+# pool3.close()
+# pool3.join()
+for song_key in all_songs:
+    print(additional_actual_best_df_round(all_songs[song_key], chord_vocabulary))
 
 evaluator.evaluate_song_based(all_songs)
 
@@ -146,17 +151,20 @@ print('Evaluation finished!')
 
 # Generate lab visualisations for each song and audio method
 # pool4 = mp.Pool(NR_CPU)
-# for song_key in all_songs:
-#     for audio_method in ['CHF_2017'] + filehandler.MIREX_SUBMISSION_NAMES:
+for song_key in all_songs:
+    for audio_method in ['CHF_2017'] + filehandler.MIREX_SUBMISSION_NAMES:
+        print(chord_label_visualiser.export_result_image(
+            all_songs[song_key], chord_vocabulary, False, True, audio_method, True
+        ))
 #         pool4.apply_async(chord_label_visualiser.export_result_image,
 #                           args=(all_songs[song_key], chord_vocabulary, True, True, audio_method, True),
 #                           callback=print)
 # pool4.close()
 # pool4.join()
-# print("Visualisation finished!")
+print("Visualisation finished!")
 
 # Export tables and figures used in the journal paper
-result_table_generator.write_tables(all_songs)
-result_table_generator.print_wcsr_midi_information()
-figure_generator.export_figures(all_songs)
-chord_label_visualiser.export_result_image(all_songs[165], chord_vocabulary, True, True, 'CHF_2017', True)
+# result_table_generator.write_tables(all_songs)
+# result_table_generator.print_wcsr_midi_information()
+# figure_generator.export_figures(all_songs)
+# chord_label_visualiser.export_result_image(all_songs[165], chord_vocabulary, False, True, 'CHF_2017', True)

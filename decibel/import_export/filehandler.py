@@ -254,8 +254,11 @@ def get_actual_best_midi_for_song(segmentation_method: str, song_key: int) -> Tu
     method_results = pandas.read_csv(MIDILABS_RESULTS_PATHS[segmentation_method], sep=';',
                                      names=['song_key', 'duration', 'midi_name', 'alignment_error', 'template_sim',
                                             'wcsr', 'ovs', 'uns', 'seg'], index_col=2)
-    actual_best_midi_name = method_results[method_results.song_key == song_key].wcsr.idxmax()
-    return actual_best_midi_name, method_results.wcsr[actual_best_midi_name]
+    try:
+        actual_best_midi_name = method_results[method_results.song_key == song_key].wcsr.idxmax()
+        return actual_best_midi_name, method_results.wcsr[actual_best_midi_name]
+    except Exception as e:
+        return '', 0
 
 
 def get_actual_best_tab_for_song(song_key: int) -> Tuple[str, float]:
@@ -404,7 +407,8 @@ def get_full_audio_path(key: int) -> str:
     :param key: The key of the song from which we need the audio
     :return: Full path to the audio of our song
     """
-    return path.join(AUDIO_FOLDER, str(key) + '.wav')
+    # return path.join(AUDIO_FOLDER, str(key) + '.wav')
+    return path.join(AUDIO_FOLDER, str(key) + '.mp3')
 
 
 def get_full_synthesized_midi_path(midi_file_name: str) -> str:

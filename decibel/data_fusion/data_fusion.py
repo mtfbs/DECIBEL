@@ -324,7 +324,8 @@ def data_fuse_song_with_actual_best_midi_and_tab(song: Song, chord_vocabulary: C
     alphabet = ChordAlphabet(chord_vocabulary)
 
     selection_name = 'actual-best'
-    lab_list = [get_actual_best_midi_lab(song), get_actual_best_tab_lab(song)]
+    lab_list = [get_actual_best_tab_lab(song)]
+    # lab_list = [get_actual_best_midi_lab(song), get_actual_best_tab_lab(song)]
 
     # Fill a numpy array with chord labels for each of the lab files
     chord_matrix = np.zeros((len(lab_list) + 1, nr_of_samples), dtype=int)

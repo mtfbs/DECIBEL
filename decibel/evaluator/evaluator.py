@@ -135,12 +135,13 @@ def evaluate_song_based(all_songs):
     # for audio_type in audio_types:
     #     _evaluate_audio_type(all_songs, df_combination_and_selection_types, audio_type)
 
-    pool = mp.Pool(mp.cpu_count() - 1)  # use all available cores except one
+    # pool = mp.Pool(mp.cpu_count() - 1)  # use all available cores except one
     for audio_type in audio_types:
-        pool.apply_async(_evaluate_audio_type, args=(all_songs, df_combination_and_selection_types, audio_type),
-                         callback=print)
-    pool.close()
-    pool.join()
+        print(_evaluate_audio_type(all_songs, df_combination_and_selection_types, audio_type))
+        # pool.apply_async(_evaluate_audio_type, args=(all_songs, df_combination_and_selection_types, audio_type),
+        #                  callback=print)
+    # pool.close()
+    # pool.join()
     print('Evaluation finished!')
 
 

@@ -121,8 +121,8 @@ def export_result_image(song: Song, chords_vocabulary: ChordVocabulary, midi: bo
     :param audio: Audio ACE method
     :param df: Show all DF results?
     """
-    # if filehandler.file_exists(filehandler.get_lab_visualisation_path(song, audio)):
-    #     return song.title + " was already visualised for the ACE method " + audio + "."
+    if filehandler.file_exists(filehandler.get_lab_visualisation_path(song, audio)):
+        return song.title + " was already visualised for the ACE method " + audio + "."
 
     nr_of_samples = int(ceil(song.duration * 100))
     alphabet = ChordAlphabet(chords_vocabulary)
