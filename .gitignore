@@ -117,3 +117,7 @@ dmypy.json
 
 .idea/
 source_docs/
+
+# Project Excluded directories
+.vs/
+Data/

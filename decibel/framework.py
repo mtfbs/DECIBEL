@@ -1,4 +1,5 @@
 import multiprocessing as mp
+from os import path
 
 from sklearn.model_selection import KFold
 
@@ -163,8 +164,9 @@ for song_key in all_songs:
 # pool4.join()
 print("Visualisation finished!")
 
-# Export tables and figures used in the journal paper
-# result_table_generator.write_tables(all_songs)
-# result_table_generator.print_wcsr_midi_information()
-# figure_generator.export_figures(all_songs)
-# chord_label_visualiser.export_result_image(all_songs[165], chord_vocabulary, False, True, 'CHF_2017', True)
+# Extra lines for testing purpose.
+# test_song = Song('0', 'test', 'test', '', filehandler.get_full_audio_path(0), '')
+# test_song.add_tab_path(path.join(filehandler.TABS_FOLDER, 'test_Chords.txt'))
+# tab_parser.classify_all_tabs_of_song(song=test_song)
+# jump_alignment.predict_single_song(song=test_song, hmm_parameters=hmm_parameters)
+# data_fusion.data_fuse_song(song=test_song, chord_vocabulary=chord_vocabulary)
