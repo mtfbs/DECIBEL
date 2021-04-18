@@ -20,18 +20,21 @@ def download_tab(tab_url: str, tab_directory: str, tab_name: str) -> (bool, str)
 
     target_path = path.join(tab_directory, tab_name)
     if path.isfile(target_path):
-        return False, 'This file already exists'
+        return False, None
 
     try:
         browser = webdriver.Firefox()
         browser.get(tab_url)
-        tab_text = browser.find_element_by_xpath('//pre[@class="_1YgOS"]').text
+        # tab_text = browser.find_element_by_xpath("//pre[@class='_3F2CP _1rDYL']").text
+        tab_text = browser.find_element_by_xpath("//code[@class='_3enQP']").text
+        # _3F2CP _1rDYL _3F2CP _1rDYL _3F2CP _3hukP
         browser.close()
 
-        with open(target_path, 'wb') as f:
+        with open(target_path, 'w') as f:
             f.write(tab_text)
-    except:
-        return False, 'Error downloading ' + tab_name
+    except Exception:
+        browser.quit()
+        return False, 'Error downloading ' + tab_name + ' on ' + tab_url
     return True, 'Download succeeded'
 
 
@@ -61,6 +64,7 @@ def download_data_set_from_csv(csv_path: str, tab_directory: str):
             nr_successful += 1
         else:
             nr_unsuccessful += 1
-            print(message)
+            if message:
+                print(message)
 
     print(str(nr_successful) + ' tab files were downloaded successfully. ' + str(nr_unsuccessful) + ' failed.')

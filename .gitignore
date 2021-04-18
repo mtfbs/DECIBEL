@@ -28,7 +28,7 @@ share/python-wheels/
 MANIFEST
 
 # PyInstaller
-#  Usually these files are written by a python script from a template
+#  Usually these files are written by a python script from a chord_template
 #  before PyInstaller builds the exe, so as to inject date/other infos into it.
 *.manifest
 *.spec
@@ -117,3 +117,7 @@ dmypy.json
 
 .idea/
 source_docs/
+
+# Project Excluded directories
+.vs/
+Data/

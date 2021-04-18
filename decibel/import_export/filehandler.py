@@ -1,7 +1,11 @@
 # -*- coding: utf-8 -*-
 from os import path, listdir, makedirs, remove
 import csv
-from decibel.utils.musicobjects import Song
+from typing import List, Tuple
+
+import pandas
+
+from decibel.music_objects.song import Song
 import random
 
 
@@ -12,6 +16,12 @@ random.seed(25)
 # Read the path to the data folder. This path is in the 'data_path.txt' file
 with open(path.join(path.dirname(__file__), 'data_path.txt'), 'r') as read_file:
     DATA_PATH = read_file.readline()
+
+
+ROOT_PATH = path.dirname(path.dirname(path.dirname(path.abspath(__file__))))
+REPORT_PATH = path.join(ROOT_PATH, 'reports')
+FIGURES_PATH = path.join(REPORT_PATH, 'figures')
+TABLES_PATH = path.join(REPORT_PATH, 'tables')
 
 
 def _full_path_to(folder_name: str, i_f_r: str):
@@ -92,6 +102,7 @@ SYNTHMIDI_FOLDER = _full_path_to('SynthMIDI', 'f')
 ALIGNMENTS_FOLDER = _full_path_to('Alignments', 'f')
 AUDIO_FEATURES_FOLDER = _full_path_to('AudioFeatures', 'f')
 CHORDS_FROM_TABS_FOLDER = _full_path_to('ChordsFromTabs', 'f')
+HMM_PARAMETERS_FOLDER = _full_path_to('HMMParameters', 'f')
 
 # Paths to .csv files with results (CSR and segmentation measures for each song)
 MIDILABS_RESULTS_PATHS = {'bar': _full_path_to('MidiLabsResultsBar.csv', 'rt'),
@@ -114,9 +125,12 @@ for df_type in ['rnd', 'mv', 'df']:
         DATA_FUSION_FOLDERS[fn + 'CHF_2017'] = _full_path_to(fn + 'CHF_2017', 'rl')
         for mirex_submission_name in MIREX_SUBMISSION_NAMES:
             DATA_FUSION_FOLDERS[fn + mirex_submission_name] = _full_path_to(fn + mirex_submission_name, 'rl')
+fn = 'DF_ACTUAL-BEST_'
+DATA_FUSION_FOLDERS[fn + 'CHF_2017'] = _full_path_to(fn + 'CHF_2017', 'rl')
+for mirex_submission_name in MIREX_SUBMISSION_NAMES:
+    DATA_FUSION_FOLDERS[fn + mirex_submission_name] = _full_path_to(fn + mirex_submission_name, 'rl')
 
 RESULT_TABLES = _full_path_to('', 'rt')
-RESULT_FIGURES = _full_path_to('', 'rf')
 RESULT_VISUALISATIONS = _full_path_to('', 'rv')
 
 
@@ -125,9 +139,10 @@ def init_folders():
     Check if all folders that we need, exist. If they do not exist yet, create them.
     """
     needed_folders = [SYNTHMIDI_FOLDER, ALIGNMENTS_FOLDER, AUDIO_FEATURES_FOLDER, CHORDS_FROM_TABS_FOLDER,
+                      HMM_PARAMETERS_FOLDER,
                       MIDILABS_FOLDERS['bar'], MIDILABS_FOLDERS['beat'], TABLABS_FOLDER,
                       MIDILABS_CHORD_PROBABILITY_FOLDER, LOG_LIKELIHOOD_FOLDER, MIDILABS_ALIGNMENT_SCORE_FOLDER,
-                      RESULT_TABLES, RESULT_FIGURES, RESULT_VISUALISATIONS]
+                      RESULT_TABLES, RESULT_VISUALISATIONS]
     for folder_name in DATA_FUSION_FOLDERS:
         needed_folders.append(DATA_FUSION_FOLDERS[folder_name])
     for needed_folder in needed_folders:
@@ -225,39 +240,40 @@ def read_midi_chord_probability(segmentation_method: str, midi_name: str) -> flo
     return result
 
 
-def _get_midi_alignment_score_path(midi_name: str) -> str:
+def get_actual_best_midi_for_song(segmentation_method: str, song_key: int) -> Tuple[str, float]:
     """
-    Get path of text file to read/write this MIDI alignment score from/to.
+    Read name and CSR of best MIDI file for song, segmented with segmentation_method. Only use after evaluation.
 
-    :param midi_name: Name of MIDI file
-    :return: Path of text file to read/write this MIDI alignment score from/to
+    :param segmentation_method: Bar or beat segmentation
+    :param song_key: Song for which we want to find the best MIDI
+    :return: Name and CSR of best MIDI
+
+    >>> get_actual_best_midi_for_song('beat', 1)
+    ('001-002', 0.7635384045589756)
     """
-    return path.join(MIDILABS_ALIGNMENT_SCORE_FOLDER, midi_name + '.txt')
+    method_results = pandas.read_csv(MIDILABS_RESULTS_PATHS[segmentation_method], sep=';',
+                                     names=['song_key', 'duration', 'midi_name', 'alignment_error', 'template_sim',
+                                            'wcsr', 'ovs', 'uns', 'seg'], index_col=2)
+    try:
+        actual_best_midi_name = method_results[method_results.song_key == song_key].wcsr.idxmax()
+        return actual_best_midi_name, method_results.wcsr[actual_best_midi_name]
+    except Exception as e:
+        return '', 0
 
 
-def write_chord_alignment_score(midi_name: str, alignment_score: float):
+def get_actual_best_tab_for_song(song_key: int) -> Tuple[str, float]:
     """
-    Write MIDI alignment score of this MIDI file to the corresponding file
+    Read name and CSR of best tab file for song. Only use after evaluation.
 
-    :param midi_name: Name of MIDI file
-    :param alignment_score: MIDI alignment score
+    :param song_key: Song for which we want to find the best tab
+    :return: Name and CSR of best tab
     """
-    write_path = _get_midi_alignment_score_path(midi_name)
-    with open(write_path, 'w') as write_file:
-        write_file.write(str(alignment_score))
-
-
-def read_chord_alignment_score(midi_name: str) -> float:
-    """
-    Read MIDI alignment score of this MIDI from the corresponding file
-
-    :param midi_name: Name of MIDI file
-    :return: MIDI alingment score float
-    """
-    read_path = _get_midi_alignment_score_path(midi_name)
-    with open(read_path, 'r') as reading_file:
-        result = float(reading_file.read().rstrip())
-    return result
+    method_results = pandas.read_csv(TABLABS_RESULTS_PATH, sep=';',
+                                     names=['song_key', 'duration', 'tab_name', 'likelihood', 'transposition',
+                                            'wcsr', 'overseg', 'underseg', 'seg'])
+    method_results_song = method_results[method_results.song_key == song_key]
+    highest_csr_index = method_results_song.wcsr.idxmax()
+    return tuple(method_results_song.loc[highest_csr_index][['tab_name', 'wcsr']])
 
 
 def _get_log_likelihood_path(song_key: int, tab_file_path: str):
@@ -391,7 +407,8 @@ def get_full_audio_path(key: int) -> str:
     :param key: The key of the song from which we need the audio
     :return: Full path to the audio of our song
     """
-    return path.join(AUDIO_FOLDER, str(key) + '.wav')
+    # return path.join(AUDIO_FOLDER, str(key) + '.wav')
+    return path.join(AUDIO_FOLDER, str(key) + '.mp3')
 
 
 def get_full_synthesized_midi_path(midi_file_name: str) -> str:
@@ -504,7 +521,7 @@ def get_chords_from_tab_filename(full_tab_file_path: str) -> str:
     :return: Filename for parsed chords
     """
     filename = get_file_name_from_full_path(full_tab_file_path)
-    return path.join(CHORDS_FROM_TABS_FOLDER, filename + '.npy')
+    return path.join(CHORDS_FROM_TABS_FOLDER, filename + '.txt')
 
 
 def get_full_audio_features_path(key: int) -> str:
@@ -515,6 +532,11 @@ def get_full_audio_features_path(key: int) -> str:
     :return: Audio features path of our song
     """
     return path.join(AUDIO_FEATURES_FOLDER, str(key) + '.npy')
+
+
+def get_hmm_parameters_path(train_indices: List[int]) -> str:
+    file_name = str(tuple(train_indices).__hash__())
+    return path.join(HMM_PARAMETERS_FOLDER, file_name + '.json')
 
 
 def get_data_fusion_path(key: int, df_type_str: str, selection_method_str: str, audio_ace: str) -> str:
@@ -564,86 +586,6 @@ def find_duplicate_midis(song: Song) -> [str]:
     return duplicate_midis
 
 
-def read_alignment_file(file_path: str) -> ([float], [float]):
-    """
-    Read the alignment from a file
-
-    :param file_path: Path to the alignment file
-    :return: The alignment, read from a file
-    """
-    with open(file_path, 'r') as alignment_read_file:
-        lines = alignment_read_file.readlines()
-        p = []
-        q = []
-        for line in lines:
-            line_parts = line.split()
-            p.append(float(line_parts[1]))
-            q.append(float(line_parts[2].rstrip()))
-        return p, q
-
-
-def get_well_aligned_midis(song: Song) -> [str]:
-    """
-    Return names of only the well-aligned MIDIs for this Song (excluding duplicates)
-
-    :param song: Song in our data set
-    """
-    # Find duplicate MIDIs in this song; we will exclude them
-    duplicate_midis = find_duplicate_midis(song)
-
-    well_aligned_midis = []
-    for full_midi_path in song.full_midi_paths:
-        midi_name = get_file_name_from_full_path(full_midi_path)
-        if midi_name not in duplicate_midis:
-            alignment_score = read_chord_alignment_score(midi_name)
-            if alignment_score <= 0.85:  # Properly aligned
-                well_aligned_midis.append(midi_name)
-
-    return well_aligned_midis
-
-
-def get_expected_best_midi(song: Song) -> (str, str):
-    """
-    Find name of the expected best well-aligned MIDI and segmentation type for this Song
-    (based on MIDI chord probability)
-
-    :param song: Song in our data set
-    """
-    # We only consider well-aligned MIDIs
-    well_aligned_midis = get_well_aligned_midis(song)
-
-    # Return path to the best MIDI of the song
-    best_midi_name, best_midi_quality, best_segmentation = '', -9999999999, ''
-    for segmentation_type in 'bar', 'beat':
-        for full_midi_path in well_aligned_midis:
-            midi_name = get_file_name_from_full_path(full_midi_path)
-            midi_chord_probability = read_midi_chord_probability(segmentation_type, midi_name)
-            if midi_chord_probability > best_midi_quality:
-                # This is the best MIDI & segmentation type we have seen until now
-                best_midi_name, best_midi_quality, best_segmentation = \
-                    midi_name, midi_chord_probability, segmentation_type
-
-    return best_midi_name, best_segmentation
-
-
-def get_expected_best_tab_lab(song: Song) -> str:
-    """
-    Find the lab file of the expected best tab for this Song (based on log-likelihood returned by Jump Alignment)
-
-    :param song: Song in our data set
-    """
-    best_tab_lab, best_tab_quality = '', 0
-
-    for tab_path in song.full_tab_paths:
-        tab_write_path = get_full_tab_chord_labs_path(tab_path)
-        if file_exists(tab_write_path):
-            tab_quality, _ = read_log_likelihood(song.key, tab_path)
-            if tab_quality > best_tab_quality:
-                best_tab_lab, best_tab_quality = tab_write_path, tab_quality
-
-    return best_tab_lab
-
-
 def get_lab_visualisation_path(song: Song, audio_ace: str) -> str:
     """
     Find the location of the png of the lab visualisation path for a given song and audio ace method.
@@ -652,3 +594,8 @@ def get_lab_visualisation_path(song: Song, audio_ace: str) -> str:
     :return: The location of the png of the lab visualisation path for a given song and audio ace method.
     """
     return path.join(RESULT_VISUALISATIONS, str(song.key) + '_' + audio_ace + '.png')
+
+
+if __name__ == "__main__":
+    import doctest
+    doctest.testmod()
