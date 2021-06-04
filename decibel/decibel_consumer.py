@@ -6,6 +6,7 @@ from decibel.file_scraper.tab_scraper import download_tab
 from decibel.file_scraper.audio_scraper import dowload_mp3_from_youtube
 from youtube_search import YoutubeSearch
 from decibel.utils.deezer_spleeter_wrappers import spleet_and_replace_all_songs_from_directory
+import shutil
 
 
 
@@ -49,7 +50,7 @@ def decibel_CLI():
         download_tab(
             tab_url=url_list[input_number],
             tab_directory=current_dir,
-            tab_name=f"{song_title}-{artist_name}"
+            tab_name=f"input_tab.txt"
         )
         # search song from youtube
         results = YoutubeSearch(song_title + ' ' + artist_name, max_results=5).to_dict()
@@ -57,28 +58,23 @@ def decibel_CLI():
         for i in range(0, len(results)):
             print(f"{i} --->  {results[i]['title']}")
         input_number = int(input())
-        print("Downloading tab from the internet...")
+        print("Downloading song from the internet...")
         video_url = results[input_number]['id']
         dowload_mp3_from_youtube(video_url)
-        # give user option to choose which HMM to use
-
+        # os.rename(f"{current_dir}/")
         # Process song normally
-        interface(interface_mode="analyze", song_title=song_title, song_album='', song_artist=artist_name,data_path=current_dir)
+        interface(interface_mode="analyze", song_title=song_title, song_album='', song_artist=artist_name,data_path=current_dir, hmm_param_number=0)
 
         # Show final result
 
+
         # TODO - show results (final json file)
 
-        # LIST OF TODO'S FOR IMPROVEMENT
-        # TODO - improve tabs
-        # TODO - grade tabs
-        # TODO - edit tabs
-        # TODO - edit timing of chords
-        # TODO - graphic user interface (frontend (react js?) )
+
 
     else:
         print(" ### Train HMM ### ")
-        print("Enter the absolute path to you 'Data' folder:")
+        print("Enter the absolute path to your 'Data' folder:")
         data_folder_path = input()
         clear()
         print("How many splits on KFold?")
@@ -116,17 +112,20 @@ def decibel_CLI():
             multithreading=True if multithreading_input == 1 else False,
             chord_vocabulary="MajorMinor" if chord_vocabulary_input == 0 else "MajorMinorSevenths")
 
+
+        current_dir = os.path.dirname(os.path.realpath(__file__))
+
+
         # move the trained models to the current folder (so it can be used for processing songs later)
         # trazer os HMM Parâmetros gerados a este diretório e dar a opção de escolher qual deles rodar
-        # current_dir + "input_HMMParameters.json"
+        hmmparameters_folder = data_folder_path + "/Files/HMMParameters/"
+        i = 0
+        for filename in os.listdir(hmmparameters_folder):
+            shutil.move(f"{hmmparameters_folder}/{filename}", f"{current_dir}/input_HMMParameters_{i}.json")
+            i += 1
 
         # TODO - GOOGLE COLAB
 
-        # TODO - DOCKER
-        # TODO - BACKEND, DATABASE
-        # TODO - IMPLEMENTAR NOVOS MÉTODOS DE TREINAMENTO (MÉTODO DA SEQUÊNCIA EXATA E/OU BAG DE ACORDES)
-        # TODO - IMPLEMENTAR MAIS VOCABULÁRIOS DE ACORDES
 
-        # TODO - RECORD VIDEO showing drawing
 
 decibel_CLI()

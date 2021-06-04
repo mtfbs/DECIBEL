@@ -7,6 +7,7 @@ import os
 def interface(
         interface_mode=None,
         data_path: str = None,
+        hmm_param_number = None,
         song_title: str = None,
         song_album: str = None,
         song_artist: str = None,
@@ -40,7 +41,8 @@ def interface(
                                                               "/features.npy",
             output_aligned_tab_write_path=data_dir + "/output_aligned_tab.lab",
             output_visualization_path=data_dir + "/output_visualization.png",
-            visualize=visualize)
+            visualize=visualize,
+            hmm_param_number=hmm_param_number)
     elif interface_mode == "train":
         # change Data path
         change_Data_path(data_dir)

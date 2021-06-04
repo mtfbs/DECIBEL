@@ -30,7 +30,8 @@ def analyze_song_with_tabs(
         intermediate_audio_features_write_path=None,
         output_aligned_tab_write_path=None,
         output_visualization_path=None,
-        visualize=False):
+        visualize=False,
+        hmm_param_number=None):
     # if at least one of the essential parameters is not provided, raise Exception#
     if input_song_tab_path is None:
         raise Exception(".mp3 path not provided. (param: input_song_audio_path)")
@@ -72,7 +73,10 @@ def analyze_song_with_tabs(
     # Get hmm_parameters from an already trained HMM #
     # find best-fit hmm_parameters TODO
     # load the parameters
-    hmm_parameters = hmm_parameter_io.read_hmm_parameters_file(input_hmm_parameters_path)
+    if hmm_param_number is None:
+        hmm_parameters = hmm_parameter_io.read_hmm_parameters_file(input_hmm_parameters_path)
+    else:
+        hmm_parameters = hmm_parameter_io.read_hmm_parameters_file(input_hmm_parameters_path[:-5] + f"_{hmm_param_number}.json")
 
     # jump alignment and generation of tables and figures #
     with warnings.catch_warnings():
