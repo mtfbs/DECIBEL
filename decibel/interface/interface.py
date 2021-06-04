@@ -27,18 +27,18 @@ def interface(
             song_title=song_title,
             song_album=song_album,
             song_artist=song_artist,
-            input_song_audio_path=data_dir + "input_song.mp3",
-            input_song_tab_path=data_dir + "input_tab.txt",
-            input_hmm_parameters_path=data_dir + "input_HMMParameters.json",
-            input_ground_truth_chord_labels_path=data_dir + "input_ground_truth_chord_"
+            input_song_audio_path=data_dir + "/input_song.mp3",
+            input_song_tab_path=data_dir + "/input_tab.txt",
+            input_hmm_parameters_path=data_dir + "/input_HMMParameters.json",
+            input_ground_truth_chord_labels_path=data_dir + "/input_ground_truth_chord_"
                                                             "labels.lab",
-            input_ground_truth_segmentation_labels_path=data_dir + "input_ground_truth"
+            input_ground_truth_segmentation_labels_path=data_dir + "/input_ground_truth"
                                                                    "_segmentation.lab",
-            intermediate_parsed_chords_path=data_dir + "intermediate_parsed_chords.txt",
-            intermediate_audio_features_write_path=data_dir + "intermediate_song_audio_"
-                                                              "features.npy",
-            output_aligned_tab_write_path=data_dir + "output_aligned_tab.lab",
-            output_visualization_path=data_dir + "output_visualization.png",
+            intermediate_parsed_chords_path=data_dir + "/intermediate_parsed_chords.txt",
+            intermediate_audio_features_write_path=data_dir + "/intermediate_song_audio_"
+                                                              "/features.npy",
+            output_aligned_tab_write_path=data_dir + "/output_aligned_tab.lab",
+            output_visualization_path=data_dir + "/output_visualization.png",
             visualize=visualize)
     elif interface_mode == "train":
         # change Data path

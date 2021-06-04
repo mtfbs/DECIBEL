@@ -36,7 +36,8 @@ def train_HMM(splits=2, multithreading=False):
     #         chords.append(chord.chord_str)
     # print("song chords --> " + str(chords))
 
-    chord_vocabulary = "MajorMinorSevenths"
+    # chord_vocabulary = "MajorMinorSevenths"
+    chord_vocabulary = "MajorMinor"
     chord_vocabulary = get_chord_vocabulary(chord_vocabulary)
 
     # Retrieve the chord vocabulary from the templates.

@@ -18,7 +18,7 @@ class ChordAlphabet:
             # MAJOR and MINOR
             if intervals == [3, 7]:
                 return str(chord.root_note) + 'm'
-            elif intervals == [4, 7]:
+            elif self.chord_vocabulary_name == 'MajorMinor':
                 return str(chord.root_note)
             # SEVENTHS
             elif intervals == [4, 7, 10]:

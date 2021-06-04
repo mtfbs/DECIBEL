@@ -171,7 +171,7 @@ def train(chord_vocabulary: ChordVocabulary, train_songs: Dict[int, Song]) -> HM
         if len(chroma_beat_matrix_per_chord[i]) == 0:
             # TODO - improve how the empty-entries are fixed below
             for i in range(0, 12):
-                np.append(chroma_beat_matrix_per_chord[i], 0.01)
+                np.append(chroma_beat_matrix_per_chord[i], 0.0001)
         obs_mu[i] = np.mean(chroma_beat_matrix_per_chord[i], axis=1)
         obs_sigma[i] = np.cov(chroma_beat_matrix_per_chord[i], ddof=0)
 
@@ -320,7 +320,6 @@ def jump_align(chords_from_tab_file_path: str, audio_path: str, lab_write_path: 
 
     # Calculate the emission probability matrix for this song
     alphabet_size = len(hmm_parameters.alphabet.alphabet_list)
-    print(alphabet_size)
     beat_times = []
     beat_chroma = []
     tempo = []

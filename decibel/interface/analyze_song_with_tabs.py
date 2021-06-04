@@ -14,7 +14,6 @@ from decibel.tab_chord_parser import tab_parser
 from decibel.evaluator import chord_label_visualiser
 from decibel.music_objects.chord_alphabet import ChordAlphabet
 from decibel.evaluator import evaluator
-from decibel.utils.find_best_fit_chord_vocabulary import find_best_fit_chord_vocabulary
 from decibel.utils.get_chord_vocabulary import get_chord_vocabulary
 
 
