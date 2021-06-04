@@ -14,7 +14,7 @@ from decibel.tab_chord_parser import tab_parser
 NR_CPU = max(mp.cpu_count() - 1, 1)
 
 
-def train_HMM(splits=2, multithreading=False):
+def train_HMM(splits=2, multithreading=False, chord_vocabulary=None):
     ########################
     # DATA SET PREPARATION #
     ########################
@@ -36,8 +36,10 @@ def train_HMM(splits=2, multithreading=False):
     #         chords.append(chord.chord_str)
     # print("song chords --> " + str(chords))
 
-    # chord_vocabulary = "MajorMinorSevenths"
-    chord_vocabulary = "MajorMinor"
+    # choose chord_vocabulary
+    if chord_vocabulary is None:
+        chord_vocabulary = "MajorMinor"
+
     chord_vocabulary = get_chord_vocabulary(chord_vocabulary)
 
     # Retrieve the chord vocabulary from the templates.

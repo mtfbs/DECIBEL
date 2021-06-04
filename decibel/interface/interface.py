@@ -7,12 +7,14 @@ import os
 def interface(
         interface_mode=None,
         data_path: str = None,
+        hmm_param_number = None,
         song_title: str = None,
         song_album: str = None,
         song_artist: str = None,
         visualize=False,
         splits=2,
-        multithreading=False
+        multithreading=False,
+        chord_vocabulary=None
 ):
     data_dir = None
     # path
@@ -39,11 +41,12 @@ def interface(
                                                               "/features.npy",
             output_aligned_tab_write_path=data_dir + "/output_aligned_tab.lab",
             output_visualization_path=data_dir + "/output_visualization.png",
-            visualize=visualize)
+            visualize=visualize,
+            hmm_param_number=hmm_param_number)
     elif interface_mode == "train":
         # change Data path
         change_Data_path(data_dir)
 
         # call for training
         from decibel.interface.train_hmm import train_HMM
-        train_HMM(splits=splits, multithreading=multithreading)
+        train_HMM(splits=splits, multithreading=multithreading, chord_vocabulary=chord_vocabulary)
