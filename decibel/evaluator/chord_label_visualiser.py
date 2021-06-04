@@ -1,12 +1,9 @@
 from math import ceil
 import numpy as np
 
-from decibel.data_fusion import data_fusion
 from decibel.music_objects.chord_alphabet import ChordAlphabet
 from decibel.music_objects.chord_vocabulary import ChordVocabulary
 from decibel.music_objects.song import Song
-from decibel.import_export import filehandler
-from decibel.evaluator.evaluator import evaluate
 import matplotlib as mpl
 import matplotlib.colors
 import matplotlib.pyplot as plt
@@ -110,7 +107,10 @@ def _show_chord_sequences(song: Song, all_chords, best_indices, names, results, 
 
 
 def export_result_image(song: Song, chords_vocabulary: ChordVocabulary, midi: bool = True, tab: bool = True,
-                        audio: str = 'CHF_2017', df: bool = True):
+                        audio: str = 'CHF_2017', df: bool = True, output_path=None):
+    from decibel.data_fusion import data_fusion
+    from decibel.import_export import filehandler
+    from decibel.evaluator.evaluator import evaluate
     """
     Export visualisation to a png file.
 
@@ -121,8 +121,9 @@ def export_result_image(song: Song, chords_vocabulary: ChordVocabulary, midi: bo
     :param audio: Audio ACE method
     :param df: Show all DF results?
     """
-    if filehandler.file_exists(filehandler.get_lab_visualisation_path(song, audio)):
-        return song.title + " was already visualised for the ACE method " + audio + "."
+    if output_path is None:
+        if filehandler.file_exists(filehandler.get_lab_visualisation_path(song, audio)):
+            return song.title + " was already visualised for the ACE method " + audio + "."
 
     nr_of_samples = int(ceil(song.duration * 100))
     alphabet = ChordAlphabet(chords_vocabulary)
