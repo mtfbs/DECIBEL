@@ -3,6 +3,10 @@ from decibel.web_integration.spotify_api import search_song
 from decibel.interface.interface import interface
 from decibel.file_scraper.tab_scraper import search_tabs
 from decibel.file_scraper.tab_scraper import download_tab
+from decibel.file_scraper.audio_scraper import dowload_mp3_from_youtube
+from youtube_search import YoutubeSearch
+from decibel.utils.deezer_spleeter_wrappers import spleet_and_replace_all_songs_from_directory
+
 
 
 def decibel_CLI():
@@ -32,12 +36,12 @@ def decibel_CLI():
         song_title = search_results[input_number]['song_title']
         artist_name = search_results[input_number]['artist_name']
         song_id = search_results[input_number]['song_id']
-        print(song_id)
+        print("song id (from spotify): " + str(song_id))
         clear()
         current_dir = os.path.dirname(os.path.realpath(__file__))
         print("Searching for tabs online...")
         url_list = search_tabs(song_title=song_title, absolute_write_path=current_dir, artist_name=artist_name, limit=6)
-        print("What url looks more correct?")
+        print("Which url looks more correct?")
         for i in range(0, len(url_list)):
             print(f"{i} --->  {url_list[i]}")
         input_number = int(input())
@@ -47,8 +51,22 @@ def decibel_CLI():
             tab_directory=current_dir,
             tab_name=f"{song_title}-{artist_name}"
         )
+        # search song from youtube
+        results = YoutubeSearch(song_title + ' ' + artist_name, max_results=5).to_dict()
+        print("Which title looks more correct?")
+        for i in range(0, len(results)):
+            print(f"{i} --->  {results[i]['title']}")
+        input_number = int(input())
+        print("Downloading tab from the internet...")
+        video_url = results[input_number]['id']
+        dowload_mp3_from_youtube(video_url)
+        # give user option to choose which HMM to use
 
-        # TODO - process the song and tab
+        # Process song normally
+        interface(interface_mode="analyze", song_title=song_title, song_album='', song_artist=artist_name,data_path=current_dir)
+
+        # Show final result
+
         # TODO - show results (final json file)
 
         # LIST OF TODO'S FOR IMPROVEMENT
@@ -83,17 +101,14 @@ def decibel_CLI():
             spleeter_input = int(input())
             if spleeter_input == 2 or spleeter_input == 4:
                 if spleeter_input == 2:
-                    pass
+                    spleet_and_replace_all_songs_from_directory(
+                        working_directory_absolute_path=f"{data_folder_path}/Input/Audio",
+                        number_of_stems=2)
                 elif spleeter_input == 3:
-                    pass
-
-        # TODO - GOOGLE COLAB
-        # TODO - DOCKER, BACKEND, BANCO DE DADOS
-        # TODO - IMPLEMENTAR NOVOS MÉTODOS DE TREINAMENTO (MÉTODO DA SEQUÊNCIA EXATA E/OU BAG DE ACORDES)
-        # TODO - IMPLEMENTAR MAIS VOCABULÁRIOS DE ACORDES
-
-        # TODO - RECORD VIDEO showing drawing
-
+                    spleet_and_replace_all_songs_from_directory(
+                        working_directory_absolute_path=f"{data_folder_path}/Input/Audio",
+                        number_of_stems=4)
+        # Train HMM
         interface(
             interface_mode='train',
             data_path=data_folder_path,
@@ -101,5 +116,17 @@ def decibel_CLI():
             multithreading=True if multithreading_input == 1 else False,
             chord_vocabulary="MajorMinor" if chord_vocabulary_input == 0 else "MajorMinorSevenths")
 
+        # move the trained models to the current folder (so it can be used for processing songs later)
+        # trazer os HMM Parâmetros gerados a este diretório e dar a opção de escolher qual deles rodar
+        # current_dir + "input_HMMParameters.json"
+
+        # TODO - GOOGLE COLAB
+
+        # TODO - DOCKER
+        # TODO - BACKEND, DATABASE
+        # TODO - IMPLEMENTAR NOVOS MÉTODOS DE TREINAMENTO (MÉTODO DA SEQUÊNCIA EXATA E/OU BAG DE ACORDES)
+        # TODO - IMPLEMENTAR MAIS VOCABULÁRIOS DE ACORDES
+
+        # TODO - RECORD VIDEO showing drawing
 
 decibel_CLI()
