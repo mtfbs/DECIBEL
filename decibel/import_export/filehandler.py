@@ -82,7 +82,8 @@ CHORDLABS_FOLDER = _full_path_to('GT_ChordLabels', 'i')
 SEGMENTATION_LABS_FOLDER = _full_path_to('GT_SegmentationLabels', 'i')
 
 # Add folders to our different representations and the index files with which we can find them
-INDEX_PATH = _full_path_to('IndexAudio.csv', 'i')
+# INDEX_PATH = _full_path_to('IndexAudio.csv', 'i')
+INDEX_PATH = _full_path_to('IndexAudioFinal.csv', 'i')
 TAB_INDEX_PATH = _full_path_to('IndexTabs.csv', 'i')
 AUDIO_FOLDER = _full_path_to('Audio', 'i')
 MIDI_FOLDER = _full_path_to('MIDI', 'i')
@@ -169,8 +170,8 @@ def get_all_songs():
                 album = key_data_row[2]
                 full_chord_labs_path = get_full_chord_labs_path(key_data_row[3])
                 full_segmentation_labs_path = get_full_segmentation_labs_path(key_data_row[3])
-                all_songs[key] = Song(key, title, album, full_chord_labs_path, get_full_audio_path(key),
-                                      full_segmentation_labs_path)
+                all_songs[key] = Song(key=key, title=title, album=album, full_ground_truth_chord_labs_path=full_chord_labs_path, full_audio_path=get_full_audio_path(key),
+                                      full_segmentation_labs_path=full_segmentation_labs_path)
 
     # Find corresponding tabs
     with open(TAB_INDEX_PATH, 'r') as tab_index_csv:

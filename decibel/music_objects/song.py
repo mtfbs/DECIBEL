@@ -2,8 +2,15 @@ import librosa
 
 
 class Song:
-    def __init__(self, key, title, album, full_ground_truth_chord_labs_path, full_audio_path,
-                 full_segmentation_labs_path):
+    def __init__(
+            self,
+            key: str = None,
+            title: str = None,
+            album: str = None,
+            artist: str = None,
+            full_ground_truth_chord_labs_path: str = None,
+            full_audio_path: str = None,
+            full_segmentation_labs_path: str = None):
         """
         Create a new song. All information we extract from any representation of this song, is added to the Song object
 
@@ -16,9 +23,15 @@ class Song:
         """
         # Key, title, album and ground truth chord_labs_path are known from the beginning
         self.audio_features_path = None
-        self.key = key
+        self.key = str(key)
+        self.tempo = None
+        self.beat_times = []
+        self.beat_frames = []
+        self.chords_order = []
+        self.chords_times = []
         self.title = title
         self.album = album
+        self.artist = artist
         self.full_ground_truth_chord_labs_path = full_ground_truth_chord_labs_path
         self.full_audio_path = full_audio_path
         self.full_segmentation_labs_path = full_segmentation_labs_path

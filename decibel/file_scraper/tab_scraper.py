@@ -5,6 +5,7 @@ from the Internet.
 
 from selenium import webdriver
 from os import path
+from googlesearch import search
 
 
 def download_tab(tab_url: str, tab_directory: str, tab_name: str) -> (bool, str):
@@ -68,3 +69,19 @@ def download_data_set_from_csv(csv_path: str, tab_directory: str):
                 print(message)
 
     print(str(nr_successful) + ' tab files were downloaded successfully. ' + str(nr_unsuccessful) + ' failed.')
+
+
+def search_tabs(song_title='', artist_name='', limit=6, absolute_write_path=''):
+    all_urls = []
+    for url in search(f'{song_title}-{artist_name} ultimate-guitar chords', stop=int(limit/2)):
+        all_urls.append(url)
+    for url in search(f'{song_title} ultimate-guitar chords', stop=int(limit/2)):
+        all_urls.append(url)
+    return all_urls
+
+
+def download_tabs_from_url_list(url_list, absolute_write_path, song_title, artist_name):
+    i = 0
+    for url in url_list:
+        download_tab(url, absolute_write_path, f"{song_title}-{artist_name}_{i}")
+        i += 1

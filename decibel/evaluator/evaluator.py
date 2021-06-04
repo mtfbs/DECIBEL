@@ -3,8 +3,6 @@ import pandas
 import numpy as np
 from os import path
 
-import decibel.import_export.midi_alignment_score_io
-from decibel.import_export import filehandler
 import multiprocessing as mp
 
 
@@ -79,6 +77,7 @@ def evaluate_method(all_songs, method_name, get_lab_function):
 
 
 def write_method_evaluations(all_songs, method_name, get_lab_function):
+    from decibel.import_export import filehandler
     """
     Write evaluations for all songs from our data set that have not been evaluated yet.
 
@@ -94,6 +93,7 @@ def write_method_evaluations(all_songs, method_name, get_lab_function):
 
 
 def _evaluate_audio_type(all_songs, df_combination_and_selection_types, audio_type):
+    from decibel.import_export import filehandler
     """
     Evaluate all songs and selected df_types and selection_names for the selected audio_type
 
@@ -121,6 +121,7 @@ def _evaluate_audio_type(all_songs, df_combination_and_selection_types, audio_ty
 
 
 def evaluate_song_based(all_songs):
+    from decibel.import_export import filehandler
     """
     Evaluate all songs in the data set in parallel
 
@@ -146,6 +147,8 @@ def evaluate_song_based(all_songs):
 
 
 def evaluate_midis(all_songs) -> None:
+    from decibel.import_export import filehandler
+    import decibel.import_export.midi_alignment_score_io
     """
     Evaluate all lab files based on MIDI alignment and chord estimation
 
@@ -176,6 +179,7 @@ def evaluate_midis(all_songs) -> None:
 
 
 def evaluate_tabs(all_songs) -> None:
+    from decibel.import_export import filehandler
     """
     Evaluate all lab files based on tab parsing and alignment.
 

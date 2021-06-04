@@ -5,10 +5,8 @@ import numpy as np
 import mir_eval
 
 from decibel.music_objects.song import Song
-from decibel.import_export import filehandler
 
-
-def get_audio_features(audio_path: str, sampling_rate: int, hop_length: int) -> Tuple[np.ndarray, np.ndarray]:
+def get_audio_features(audio_path: str, sampling_rate: int, hop_length: int, song: Song = None) -> Tuple[np.ndarray, np.ndarray]:
     # Load audio with small sampling rate and convert to mono. Audio is an array with a value per *sample*
     audio, _ = librosa.load(audio_path, sr=sampling_rate, mono=True)
 
@@ -16,8 +14,14 @@ def get_audio_features(audio_path: str, sampling_rate: int, hop_length: int) -> 
     audio_harmonic, audio_percussive = librosa.effects.hpss(audio)
 
     # Beat track on the percussive signal. The result is an array of *frames* which are on a beat
-    _, beat_frames = librosa.beat.beat_track(y=audio_percussive, sr=sampling_rate, hop_length=hop_length,
-                                             trim=False)
+    beat_frames = []
+    tempo = None
+    if song is not None:
+        tempo, beat_frames = librosa.beat.beat_track(y=audio_percussive, sr=sampling_rate, hop_length=hop_length,
+                                                     trim=False)
+    else:
+        _, beat_frames = librosa.beat.beat_track(y=audio_percussive, sr=sampling_rate, hop_length=hop_length,
+                                                 trim=False)
 
     # Compute chroma features from the harmonic signal. We get a 12D array of chroma for each *frame*
     chromagram = librosa.feature.chroma_cqt(y=audio_harmonic, sr=sampling_rate, hop_length=hop_length)
@@ -32,7 +36,10 @@ def get_audio_features(audio_path: str, sampling_rate: int, hop_length: int) -> 
     # Translate beats from frames to time domain
     beat_times = librosa.frames_to_time(beat_frames, sr=sampling_rate, hop_length=hop_length)
 
-    return beat_times, beat_chroma
+    if song is not None:
+        return tempo, beat_times, beat_chroma
+    else:
+        return beat_times, beat_chroma
 
 
 def beat_align_ground_truth_labels(ground_truth_labels_path: str, beat_times: np.ndarray) -> List[str]:
@@ -86,7 +93,7 @@ def get_feature_ground_truth_matrix(full_audio_path: str, ground_truth_labs_path
     return times_features_class
 
 
-def export_audio_features_for_song(song: Song) -> None:
+def export_audio_features_for_song(song: Song, audio_features_path: str = None) -> None:
     """
     Export the audio features of this song to a file.
 
@@ -100,11 +107,19 @@ def export_audio_features_for_song(song: Song) -> None:
     vector with the corresponding beat-synchronized chord label is regarded as one frame.
 
     :param song: Song for which we export the audio features
+    :param audio_features_path: path to where the audio_features.npy internally used file should be written
     """
     if song.full_ground_truth_chord_labs_path != '':
         # There are chord labels for this song
-        write_path = filehandler.get_full_audio_features_path(song.key)
-        if filehandler.file_exists(write_path):
+        does_file_exist = True
+        write_path = ""
+        if audio_features_path is not None:
+            write_path = audio_features_path
+        elif audio_features_path is None:
+            from decibel.import_export import filehandler
+            write_path = filehandler.get_full_audio_features_path(song.key)
+            does_file_exist = filehandler.file_exists(write_path)
+        if does_file_exist:
             # We already extracted the audio features
             song.audio_features_path = write_path
         else:

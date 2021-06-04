@@ -1,9 +1,9 @@
 from typing import Dict
 
+import librosa
 import numpy as np
 
 from decibel.audio_tab_aligner.hmm_parameters import HMMParameters
-from decibel.import_export import filehandler
 from decibel.import_export.untimed_chord_sequence_io import read_untimed_chord_sequence
 from decibel.music_objects.chord import Chord
 from decibel.music_objects.chord_alphabet import ChordAlphabet
@@ -70,7 +70,7 @@ def _transpose_chord_label(chord_label: int, nr_semitones_higher: int, alphabet:
     if chord_label == 0:
         return 0
     nr_semitones_higher = nr_semitones_higher % 12
-    if alphabet.chord_vocabulary_name == 'MajMin':
+    if True:
         mode = int((chord_label - 1) / 12)
         key = (chord_label - 1) % 12
         key += nr_semitones_higher
@@ -78,7 +78,7 @@ def _transpose_chord_label(chord_label: int, nr_semitones_higher: int, alphabet:
             key -= 12
         return 12 * mode + key + 1
 
-    raise NotImplementedError('This is not (yet?) supported for chord vocabularies other than "MajMin".')
+    raise NotImplementedError('This is not (yet?) supported for chord vocabularies other than "MajorMinor".')
     # TODO Implement for other chord vocabularies (e.g. seventh chords)
 
 
@@ -119,6 +119,7 @@ def _read_tab_file_path(chords_from_tab_file_path: str, alphabet: ChordAlphabet)
 
 
 def train(chord_vocabulary: ChordVocabulary, train_songs: Dict[int, Song]) -> HMMParameters:
+    from decibel.import_export import filehandler
     """
     Train the HMM parameters on training_set for the given chords_list vocabulary
 
@@ -147,10 +148,10 @@ def train(chord_vocabulary: ChordVocabulary, train_songs: Dict[int, Song]) -> HM
             # Iterate over the beats, fill chroma_beat_matrix_per_chord and chord_index_list
             for frame_index in range(features.shape[0]):
                 chroma = features[frame_index, 1:13].astype(float)
-                chord_index = alphabet.get_index_of_chord_in_alphabet(
-                    Chord.from_harte_chord_string(features[frame_index, 13]))
+                chord_index = alphabet.get_index_of_chord_in_alphabet(Chord.from_harte_chord_string(features[frame_index, 13]))
                 chord_index_list.append(chord_index)
                 chroma_beat_matrix_per_chord[chord_index].append(chroma)
+
             # Add first chord to init_matrix
             init[chord_index_list[0]] += 1
             # Add each chord transition to transition_matrix
@@ -166,6 +167,11 @@ def train(chord_vocabulary: ChordVocabulary, train_songs: Dict[int, Song]) -> HM
     obs_sigma = np.zeros((alphabet_size, 12, 12))
     for i in range(alphabet_size):
         chroma_beat_matrix_per_chord[i] = np.array(chroma_beat_matrix_per_chord[i]).T
+        # if chroma_beat_matrix_per_chord[i] has an empty entry, artificially makes it have a little one
+        if len(chroma_beat_matrix_per_chord[i]) == 0:
+            # TODO - improve how the empty-entries are fixed below
+            for i in range(0, 12):
+                np.append(chroma_beat_matrix_per_chord[i], 0.0001)
         obs_mu[i] = np.mean(chroma_beat_matrix_per_chord[i], axis=1)
         obs_sigma[i] = np.cov(chroma_beat_matrix_per_chord[i], ddof=0)
 
@@ -293,7 +299,7 @@ def jump_alignment(chords_from_tab_file_path: str, audio_features_path: str, lab
 
 
 def jump_align(chords_from_tab_file_path: str, audio_path: str, lab_write_path: str, hmm_parameters: HMMParameters,
-               p_f: float = 0.05, p_b: float = 0.05) -> (float, int):
+               p_f: float = 0.05, p_b: float = 0.05, song=None) -> (float, int):
     """
     Calculate the optimal alignment between tab file and audio
 
@@ -309,12 +315,24 @@ def jump_align(chords_from_tab_file_path: str, audio_path: str, lab_write_path: 
     nr_of_chords_in_tab, chord_ids, is_first_in_line, is_last_in_line = \
         _read_tab_file_path(chords_from_tab_file_path, hmm_parameters.alphabet)
 
-    if nr_of_chords_in_tab < 5:
-        return None, 0
+    # if nr_of_chords_in_tab < 5:
+    #     return None, 0
 
     # Calculate the emission probability matrix for this song
     alphabet_size = len(hmm_parameters.alphabet.alphabet_list)
-    beat_times, beat_chroma = feature_extractor.get_audio_features(audio_path, sampling_rate=22050, hop_length=256)
+    beat_times = []
+    beat_chroma = []
+    tempo = []
+    if song is not None:
+        # noinspection PyTupleAssignmentBalance
+        tempo, beat_times, beat_chroma = feature_extractor.get_audio_features(audio_path, sampling_rate=22050,
+                                                                              hop_length=256,
+                                                                              song=song)
+        song.tempo = tempo
+        song.beat_times = beat_times
+        song.beat_frames = librosa.time_to_frames(song.beat_times)
+    else:
+        beat_times, beat_chroma = feature_extractor.get_audio_features(audio_path, sampling_rate=22050, hop_length=256)
     audio_features = np.c_[beat_times[:-1], beat_chroma]
     # features = np.load(audio_features_path)[:, 1:13].astype(float)
     features = audio_features[:, 1:].astype(float)
@@ -387,7 +405,7 @@ def jump_align(chords_from_tab_file_path: str, audio_path: str, lab_write_path: 
     viterbi_path = transposed_chord_ids[viterbi_path]
 
     # Export the Viterbi path
-    beat_times = audio_features[:, 0]
+    # beat_times = audio_features[:, 0]
     beat_start = '0'
     last_chord = viterbi_path[0]
     with open(lab_write_path, 'w') as write_file:
@@ -396,15 +414,30 @@ def jump_align(chords_from_tab_file_path: str, audio_path: str, lab_write_path: 
                 chord_str = _chord_label_to_chord_str(viterbi_path[b - 1], hmm_parameters.alphabet)
                 write_file.write(str(beat_start) + ' ' + str(beat_times[b]) + ' ' + chord_str + '\n')
                 beat_start = beat_times[b]
+                if song is not None:
+                    song.chords_order.append(chord_str)
+                    song.chords_times.append(beat_start)
                 last_chord = viterbi_path[b]
         if beat_times[len(beat_times) - 2] != beat_start:
             chord_str = _chord_label_to_chord_str(viterbi_path[len(beat_times) - 2], hmm_parameters.alphabet)
-            write_file.write(str(beat_start) + ' ' + str(beat_times[len(beat_times) - 1]) + ' ' + chord_str)
+            song.chords_times.append(beat_times[len(beat_times) - 2])
+            song.chords_times.append(beat_times[len(beat_times) - 1])
+
+            song.chords_order.append(chord_str)
+
+            song.chords_order.append("N")
+
+            write_file.write(str(beat_start) + ' ' + str(song.chords_times[-2]) + ' ' + chord_str + "\n")
+
+            chord_str = song.chords_order[-1]
+
+            write_file.write(str(song.chords_times[-2]) + ' ' + str(song.chords_times[-1]) + ' ' + chord_str)
 
     return best_likelihood, best_transposition
 
 
 def test_single_song(song: Song, hmm_parameters: HMMParameters) -> None:
+    from decibel.import_export import filehandler
     """
     Estimate chords for each tab matched to the song and export them to a lab file.
 
@@ -428,23 +461,28 @@ def test_single_song(song: Song, hmm_parameters: HMMParameters) -> None:
                 filehandler.write_log_likelihood(song.key, tab_write_path, log_likelihood, transposition_semitone)
 
 
-def predict_single_song(song: Song, hmm_parameters: HMMParameters) -> None:
+def predict_single_song(song: Song, hmm_parameters: HMMParameters, tab_write_path=None) -> None:
+    from decibel.import_export import filehandler
     """
     Estimate chords for each tab matched to the song and export them to a lab file.
 
     :param song: Song for which we estimate tab-based chords
     :param hmm_parameters: Parameters of the trained HMM
+    :param tab_write_path: Path where the final result must be written to
     """
     for full_tab_path in song.full_tab_paths:
         tab_chord_path = filehandler.get_chords_from_tab_filename(full_tab_path)
-        tab_write_path = filehandler.get_full_tab_chord_labs_path(full_tab_path)
+        if tab_write_path is None:
+            tab_write_path = filehandler.get_full_tab_chord_labs_path(full_tab_path)
         if not filehandler.file_exists(tab_write_path):
             log_likelihood, transposition_semitone = \
                 jump_align(tab_chord_path, song.full_audio_path, tab_write_path, hmm_parameters)
             if log_likelihood is not None:
                 # We found an alignment, write this to our log-likelihoods file
                 if not tab_write_path.startswith(filehandler.DATA_PATH):
-                    print('WRITING ERROR')
+                    pass
+                    # It is not an error anymore, I'm purposely writing on a custom path given by the function caller
+                    # print('WRITING ERROR')
                 # Remove start of path
                 tab_write_path = tab_write_path[len(filehandler.DATA_PATH) + 1:]
                 filehandler.write_log_likelihood(song.key, tab_write_path, log_likelihood, transposition_semitone)

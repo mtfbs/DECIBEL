@@ -8,11 +8,11 @@ from decibel.music_objects.chord import Chord
 from decibel.music_objects.chord_alphabet import ChordAlphabet
 from decibel.music_objects.chord_vocabulary import ChordVocabulary
 from decibel.music_objects.song import Song
-from decibel.import_export import filehandler
-from decibel.import_export.midi_alignment_score_io import read_chord_alignment_score
 
 
 def get_well_aligned_midis(song: Song) -> [str]:
+    from decibel.import_export.midi_alignment_score_io import read_chord_alignment_score
+    from decibel.import_export import filehandler
     """
     Return names of only the well-aligned MIDIs for this Song (excluding duplicates)
 
@@ -33,6 +33,7 @@ def get_well_aligned_midis(song: Song) -> [str]:
 
 
 def get_expected_best_midi(song: Song) -> (str, str):
+    from decibel.import_export import filehandler
     """
     Find name of the expected best well-aligned MIDI and segmentation type for this Song
     (based on MIDI chord probability)
@@ -57,6 +58,7 @@ def get_expected_best_midi(song: Song) -> (str, str):
 
 
 def get_expected_best_tab_lab(song: Song) -> str:
+    from decibel.import_export import filehandler
     """
     Find the lab file of the expected best tab for this Song (based on log-likelihood returned by Jump Alignment)
 
@@ -75,6 +77,7 @@ def get_expected_best_tab_lab(song: Song) -> str:
 
 
 def get_actual_best_midi_lab(song: Song) -> str:
+    from decibel.import_export import filehandler
     """
     Find path to the actual best MIDI and segmentation type for this Song (based on CSR). Only use after evaluation.
 
@@ -89,6 +92,7 @@ def get_actual_best_midi_lab(song: Song) -> str:
 
 
 def get_actual_best_tab_lab(song: Song) -> str:
+    from decibel.import_export import filehandler
     best_tab_name, _ = filehandler.get_actual_best_tab_for_song(song.key)
     return filehandler.get_full_tab_chord_labs_path(best_tab_name)
 
@@ -131,6 +135,7 @@ def _write_final_labels(final_labels, lab_path, alphabet):
 
 
 def _random_chord_label_combination(chord_matrix, nr_of_samples):
+    from decibel.import_export import filehandler
     """
     For each 10ms segment, pick the chord label from a random source
 
@@ -147,6 +152,7 @@ def _random_chord_label_combination(chord_matrix, nr_of_samples):
 
 
 def _majority_vote_chord_label_combination(chord_matrix, nr_of_samples, alphabet):
+    from decibel.import_export import filehandler
     """
     For each 10ms segment, pick the chord label that occurs in most sources (or randomly pick one of the chord labels
     that occur in most sources)
@@ -230,6 +236,7 @@ def load_lab_file_into_chord_matrix(lab_path, i, chord_matrix, alphabet, nr_of_s
 
 
 def data_fuse_song(song: Song, chord_vocabulary: ChordVocabulary):
+    from decibel.import_export import filehandler
     """
     Data fuse a song using all combinations of selection and combination methods, write the final labels to .lab files
 
@@ -302,6 +309,7 @@ def data_fuse_song(song: Song, chord_vocabulary: ChordVocabulary):
 
 
 def data_fuse_song_with_actual_best_midi_and_tab(song: Song, chord_vocabulary: ChordVocabulary):
+    from decibel.import_export import filehandler
     """
     Data fuse a song using all combinations of selection and combination methods, write the final labels to .lab files
 
