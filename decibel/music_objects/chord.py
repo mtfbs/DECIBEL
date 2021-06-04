@@ -18,6 +18,10 @@ class Chord:
         self.root_note = root_note
         self.bass_degree = bass_degree
         self.components_degree_list = sorted(components_degree_list)
+        self.semitone_intervals_array = []
+        for i in range(len(self.components_degree_list)):
+            self.semitone_intervals_array.append(self.components_degree_list[i].semitone_interval)
+
 
     def __eq__(self, other):
         """
@@ -279,3 +283,4 @@ class Chord:
             bass_interval = Interval.from_pitch_class_distances(root_note_pitch_class, bass_note_pitch_class)
 
         return Chord.from_shorthand_degree_bass(root_note_pitch_class, chord_type_string, [], bass_interval, 'tab')
+
