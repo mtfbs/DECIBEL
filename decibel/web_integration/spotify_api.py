@@ -2,6 +2,7 @@
 
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
+import os
 
 
 def search_song(song_title):
@@ -20,4 +21,3 @@ def search_song(song_title):
             tracks_dict.append({'song_title': song_title, 'artist_name': artist_name, 'song_id': song_id})
 
     return tracks_dict
-

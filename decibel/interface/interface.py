@@ -12,7 +12,8 @@ def interface(
         song_artist: str = None,
         visualize=False,
         splits=2,
-        multithreading=False
+        multithreading=False,
+        chord_vocabulary=None
 ):
     data_dir = None
     # path
@@ -46,4 +47,4 @@ def interface(
 
         # call for training
         from decibel.interface.train_hmm import train_HMM
-        train_HMM(splits=splits, multithreading=multithreading)
+        train_HMM(splits=splits, multithreading=multithreading, chord_vocabulary=chord_vocabulary)
