@@ -55,3 +55,9 @@ requests==2.25.1
 pydub~=0.25.1
 setuptools~=57.0.0
 spotipy~=2.18.0
+yotube-dl 2021.5.16
+youtube-dl2 2.0
+youtube-search 2.1.0
+spleeter 2.2.2
+Selenium 3.141.0
+google 3.0.0
