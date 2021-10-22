@@ -97,7 +97,7 @@ def spleet_song(working_directory_absolute_path=None, input_file_name="song.mp3"
 def spleet_and_replace_all_songs_from_directory(working_directory_absolute_path, number_of_stems=2):
     working_directory_absolute_path = working_directory_absolute_path + '/'
     for filename in os.listdir(working_directory_absolute_path):
-        if not os.path.isdir(working_directory_absolute_path + filename):
+        if not os.path.isdir(working_directory_absolute_path + filename) and filename[-4:]=='.mp3':
             spleet_song(
                 working_directory_absolute_path=working_directory_absolute_path,
                 input_file_name=filename,
@@ -106,8 +106,8 @@ def spleet_and_replace_all_songs_from_directory(working_directory_absolute_path,
             )
 
 
-# spleet_all_songs_from_directory(
-#     working_directory_absolute_path="/home/mateus/hdd/pastas/git/moises_final/scalableDECIBEL/decibel/utils/dir/",
+# spleet_and_replace_all_songs_from_directory(
+#     working_directory_absolute_path="/home/mateus/hdd/pastas/git/moises_final/scalableDECIBEL/decibel/dir",
 #     number_of_stems=2)
 
 # spleet_song(
